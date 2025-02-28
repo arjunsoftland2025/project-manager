@@ -1,0 +1,101 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Library Members",
+  "enabled": 1,
+  "modified": "2025-02-20 14:50:31.350680",
+  "module": "Library Management",
+  "name": "for library members",
+  "script": "frappe.ui.form.on('Library Members', {\n    refresh(frm) {\n        // Trigger the code to set full name when the form is loaded or refreshed\n        frm.fields_dict['first_name'].df.onchange = function() {\n            frm.set_value('full_name', frm.doc.first_name + ' ' + (frm.doc.last_name || ''));\n        };\n        \n        frm.fields_dict['last_name'].df.onchange = function() {\n            frm.set_value('full_name', frm.doc.first_name + ' ' + (frm.doc.last_name || ''));\n        };\n    }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Library Membership",
+  "enabled": 1,
+  "modified": "2025-02-20 16:01:36.926984",
+  "module": "Library Management",
+  "name": "for library membership",
+  "script": "frappe.ui.form.on('Library Membership', {\n    before_submit(frm) {\n        frappe.msgprint(\"before_submit triggered!\");\n\n        // Check if there is an active membership for the member\n        frappe.get_list('Library Membership', {\n            filters: {\n                library_member: frm.doc.library_member,\n                docstatus: 1, // 1 corresponds to \"submitted\" status\n                to_date: [\">\", frm.doc.from_date],  // Ensure the existing membership's end date is later than the start date\n            },\n            fields: ['name']  // Only fetch the \"name\" field (or ID) of the matching membership\n        }).then((existing_memberships) => {\n            if (existing_memberships && existing_memberships.length > 0) {\n                frappe.msgprint(__('There is an active membership for this member'));\n                frappe.validated = false;  // Prevent form submission\n            }\n        }).catch((error) => {\n            console.error(\"Error checking for active membership:\", error);\n        });\n    }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "TaskDetails",
+  "enabled": 1,
+  "modified": "2025-02-27 10:39:31.311601",
+  "module": "Project Manager",
+  "name": "Auto-Fetch Assigned Employee in TaskDetails",
+  "script": "frappe.ui.form.on('TaskDetails', {\n    refresh: function(frm) {\n        if (frm.doc.assigned_employee) {\n            frappe.call({\n                method: 'frappe.client.get_value',\n                args: {\n                    doctype: 'EmployeeDetails',\n                    filters: { 'full_name': frm.doc.assigned_employee },\n                    fieldname: ['full_name']\n                },\n                callback: function(response) {\n                    if (response.message) {\n                        // frm.set_df_property('assigned_employee', 'description', 'Employee: ' + response.message.full_name);\n                        frm.set_value('assigned_employee', response.message.full_name);\n                    }\n                }\n            });\n        }\n    }\n});\n\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "EmployeeDetails",
+  "enabled": 1,
+  "modified": "2025-02-28 12:49:18.262210",
+  "module": "Project Manager",
+  "name": "Auto-Set Department Post Based on Role and Employee Name",
+  "script": "frappe.ui.form.on('EmployeeDetails', {\n    email: function(frm) {\n        if (frm.doc.email) {\n            frappe.call({\n                method: \"frappe.client.get_value\",\n                args: {\n                    doctype: \"User\",\n                    filters: { \"email\": frm.doc.email },\n                    fieldname: \"full_name\"\n                },\n                callback: function(response) {\n                    if (response.message) {\n                        frm.set_value('full_name', response.message.full_name);\n                    }\n                }\n            });\n\n            frappe.call({\n                method: \"frappe.client.get_value\",\n                args: {\n                    doctype: \"User\",\n                    filters: { \"email\": frm.doc.email },\n                    fieldname: \"role_profile_name\"\n                },\n                callback: function(response) {\n                    if (response.message) {\n                        if (response.message.role_profile_name == 'Task-Boss') {\n                            frm.set_value('department_post', 'Head');\n                        } else if (response.message.role_profile_name == 'Task-Lead') {\n                            frm.set_value('department_post', 'Lead');  // Added Task-Lead mapping\n                        } else if (response.message.role_profile_name == 'Task-Employee') {\n                            frm.set_value('department_post', 'Employee');\n                        }\n                    }\n                }\n            });\n        }\n    },\n    department_name: function(frm) {\n        if (frm.doc.department_name) {\n            frm.set_query(\"assigned_project\", function() {\n                return {\n                    filters: {\n                        \"assigned_department\": frm.doc.department_name  // Show only projects from this department\n                    }\n                };\n            });\n        }\n    }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "ProjectDetails",
+  "enabled": 1,
+  "modified": "2025-02-26 16:14:36.593805",
+  "module": "Project Manager",
+  "name": "Validation in start_date for ProjectDetails",
+  "script": "frappe.ui.form.on('ProjectDetails', {\n    start_date: function(frm) {\n        let today = frappe.datetime.get_today();\n        if (frm.doc.start_date && frm.doc.start_date < today) {\n            frappe.msgprint(__('Start Date cannot be earlier than today.'));\n            frm.set_value('start_date', today);\n        }\n        validate_dates(frm);\n    },\n    end_date: function(frm) {\n        validate_dates(frm);\n    }\n});\nfunction validate_dates(frm) {\n    if (frm.doc.start_date && frm.doc.end_date && frm.doc.end_date < frm.doc.start_date) {\n        frappe.msgprint(__('End Date cannot be before Start Date.'));\n        frm.set_value('end_date', frm.doc.start_date);\n    }\n}\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "TaskDetails",
+  "enabled": 1,
+  "modified": "2025-02-26 16:25:11.375791",
+  "module": "Project Manager",
+  "name": "Validation in task_due_date for TaskDetails",
+  "script": "frappe.ui.form.on('TaskDetails', {\n    task_due_date: function(frm) {\n        let today = frappe.datetime.get_today();\n\n        if (frm.doc.task_due_date && frm.doc.task_due_date < today) {\n            frappe.msgprint(__('Due Date cannot be earlier than today.'));\n            frm.set_value('task_due_date', today);  // Reset to today's date\n        }\n    }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "TaskDetails",
+  "enabled": 1,
+  "modified": "2025-02-27 13:57:38.962705",
+  "module": "Project Manager",
+  "name": "Input validation for TaskDetails",
+  "script": "frappe.ui.form.on('TaskDetails', {\n    validate: function(frm) {\n        // Function to trim and check if a value is empty after trimming\n        function is_invalid(value) {\n            return !value || value.trim().length === 0;\n        }\n\n        // Fields to validate\n        let fields_to_check = ['task_name', 'task_description', 'task_due_date'];\n\n        fields_to_check.forEach(field => {\n            if (is_invalid(frm.doc[field])) {\n                frappe.msgprint(__(`${frappe.meta.get_docfield(\"TaskDetails\", field).label} cannot be empty or contain only spaces`));\n                frappe.validated = false;\n            } else {\n                // Trim leading/trailing spaces (update the value in the form)\n                frm.set_value(field, frm.doc[field].trim());\n            }\n        });\n    }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "EmployeeDetails",
+  "enabled": 1,
+  "modified": "2025-02-28 15:15:30.316002",
+  "module": "Project Manager",
+  "name": "Input validation for EmployeeDetails",
+  "script": "frappe.ui.form.on('EmployeeDetails', {\n    validate: function(frm) {\n        // Function to check if value is empty after trimming\n        function is_invalid(value) {\n            return !value || value.trim().length === 0;\n        }\n\n        // Validate employee full name using regex\n        function is_valid_name(name) {\n            let regex = /^[A-Za-z]{3,}(?: [A-Za-z]{1,})*$/;\n            return regex.test(name);\n        }\n\n        // Validate email format\n        function is_valid_email(email) {\n            let regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/;\n            return regex.test(email);\n        }\n\n        // Fields to validate (prevent empty values & trim)\n        let fields_to_check = ['full_name', 'email', 'department_name'];\n\n        fields_to_check.forEach(field => {\n            if (is_invalid(frm.doc[field])) {\n                frappe.msgprint(__(`${frappe.meta.get_docfield(\"EmployeeDetails\", field).label} cannot be empty or contain only spaces`));\n                frappe.validated = false;\n            } else {\n                // Trim leading/trailing spaces\n                frm.set_value(field, frm.doc[field].trim());\n            }\n        });\n\n        // Validate full name\n        if (!is_valid_name(frm.doc.full_name)) {\n            frappe.msgprint(__('Full Name must be at least 3 letters and only contain alphabets with single spaces in between'));\n            frappe.validated = false;\n        }\n\n        // Validate email\n        if (!is_valid_email(frm.doc.email)) {\n            frappe.msgprint(__('Please enter a valid email address'));\n            frappe.validated = false;\n        }\n        \n        // Check that the assigned project belongs to the same department\n        if (frm.doc.assigned_project && frm.doc.department_name) {\n            frappe.call({\n                method: \"frappe.client.get_value\",\n                args: {\n                    doctype: \"ProjectDetails\",\n                    filters: {\"name\": frm.doc.assigned_project},\n                    fieldname: \"assigned_department\"\n                },\n                async: false,\n                callback: function(r) {\n                    if (r.message) {\n                        if(r.message.assigned_department != frm.doc.department_name) {\n                            frappe.msgprint(__('The selected project does not belong to the employee’s department.'));\n                            frappe.validated = false;\n                        }\n                    }\n                }\n            });\n        }\n    }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "TaskDetails",
+  "enabled": 1,
+  "modified": "2025-02-27 15:17:24.822389",
+  "module": "Project Manager",
+  "name": "Add Color in Task Status",
+  "script": "frappe.listview_settings['TaskDetails'] = {\n    formatters: {\n        task_status(val) {\n            let status_colors = {\n                \"Pending\": \"orange\",\n                \"Completed\": \"green\",\n                \"Closed\": \"black\"\n            };\n\n            let color = status_colors[val] || \"gray\"; // Default color\n            return `<span class=\"indicator-pill ${color}\">${val}</span>`;\n        }\n    }\n};\n",
+  "view": "Form"
+ }
+]

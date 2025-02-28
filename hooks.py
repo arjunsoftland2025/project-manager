@@ -13,6 +13,8 @@ doc_events = {
 }
 
 
+###################################################################
+
 scheduler_events = {
     "daily": [
         "project_manager.services.auto_close_tasks.auto_close_expired_tasks"

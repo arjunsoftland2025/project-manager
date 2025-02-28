@@ -1,0 +1,21 @@
+[
+ {
+  "allow_guest": 0,
+  "api_method": null,
+  "cron_format": null,
+  "disabled": 0,
+  "docstatus": 0,
+  "doctype": "Server Script",
+  "doctype_event": "Before Insert",
+  "enable_rate_limit": 0,
+  "event_frequency": "Daily",
+  "modified": "2025-02-26 15:50:01.232113",
+  "module": "Project Manager",
+  "name": "Auto-Close Tasks for Project Manager",
+  "rate_limit_count": 5,
+  "rate_limit_seconds": 86400,
+  "reference_doctype": null,
+  "script": "import frappe\nfrom frappe.utils import nowdate\n\ndef execute():\n    overdue_tasks = frappe.get_all(\"TaskDetails\", \n                                   filters={\"task_status\": [\"!=\", \"Closed\"],\n                                            \"task_due_date\": [\"<\", nowdate()]},\n                                   fields=[\"name\"])\n\n    for task in overdue_tasks:\n        frappe.db.set_value(\"TaskDetails\", task.name, \"task_status\", \"Closed\")\n\n    frappe.db.commit()\n",
+  "script_type": "Scheduler Event"
+ }
+]
