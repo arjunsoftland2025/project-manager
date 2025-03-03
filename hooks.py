@@ -8,7 +8,8 @@ app_license = "mit"
 
 doc_events = {
     "TaskDetails": {
-        "before_insert": "project_manager.services.taskdetails_naming.before_save_task"
+        "before_insert": "project_manager.services.taskdetails_naming.before_save_task",
+        "before_save": "project_manager.services.task_completion.before_save_task"
     }
 }
 
@@ -18,6 +19,9 @@ doc_events = {
 scheduler_events = {
     "daily": [
         "project_manager.services.auto_close_tasks.auto_close_expired_tasks"
+    ],
+    "hourly": [
+        "project_manager.services.auto_onhold_projects.update_tasks_for_on_hold_projects"
     ]
 }
 

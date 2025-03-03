@@ -97,5 +97,16 @@
   "name": "Add Color in Task Status",
   "script": "frappe.listview_settings['TaskDetails'] = {\n    formatters: {\n        task_status(val) {\n            let status_colors = {\n                \"Pending\": \"orange\",\n                \"Completed\": \"green\",\n                \"Closed\": \"black\"\n            };\n\n            let color = status_colors[val] || \"gray\"; // Default color\n            return `<span class=\"indicator-pill ${color}\">${val}</span>`;\n        }\n    }\n};\n",
   "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "TaskDetails",
+  "enabled": 1,
+  "modified": "2025-03-03 09:01:24.622691",
+  "module": "Project Manager",
+  "name": "Make Task Read-Only When Status Becomes Closed",
+  "script": "frappe.ui.form.on('TaskDetails', {\n    refresh: function(frm) {\n        if (frm.doc.task_status === \"Closed\") {\n            frm.disable_form();  // Make form read-only\n        }\n    },\n    task_status: function(frm) {\n        if (frm.doc.task_status === \"Closed\") {\n            frm.disable_form();\n        }\n    }\n});\n",
+  "view": "Form"
  }
 ]
