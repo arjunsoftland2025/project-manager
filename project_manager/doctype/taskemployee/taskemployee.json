@@ -24,10 +24,10 @@
    "unique": 1
   },
   {
-   "fetch_from": "full_name.email",
    "fieldname": "email",
    "fieldtype": "Data",
    "label": "Email ID",
+   "length": 50,
    "reqd": 1
   },
   {
@@ -43,6 +43,7 @@
    "options": "TaskDepartment"
   },
   {
+   "default": " ",
    "fieldname": "department_post",
    "fieldtype": "Data",
    "label": "Department Post",
@@ -51,7 +52,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-05 09:21:31.171905",
+ "modified": "2025-03-05 16:35:04.230151",
  "modified_by": "Administrator",
  "module": "Project Manager",
  "name": "TaskEmployee",

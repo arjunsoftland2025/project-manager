@@ -18,13 +18,15 @@
    "fieldname": "assigned_department",
    "fieldtype": "Link",
    "label": "Assigned Department",
-   "options": "TaskDepartment"
+   "options": "TaskDepartment",
+   "reqd": 1
   },
   {
    "fieldname": "project_name",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Name of project",
+   "reqd": 1,
    "unique": 1
   },
   {
@@ -43,18 +45,20 @@
    "fieldname": "end_date",
    "fieldtype": "Date",
    "in_list_view": 1,
-   "label": "End Date"
+   "label": "End Date",
+   "reqd": 1
   },
   {
    "fieldname": "project_status",
    "fieldtype": "Select",
    "label": "Project Status",
-   "options": "Live\nCompleted\nOn Hold"
+   "options": "Live\nCompleted\nOn Hold",
+   "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-05 09:23:16.240028",
+ "modified": "2025-03-05 17:16:56.285233",
  "modified_by": "Administrator",
  "module": "Project Manager",
  "name": "TaskProject",

@@ -13,7 +13,9 @@
   {
    "fieldname": "dept_detail_name",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Department Name",
+   "reqd": 1,
    "unique": 1
   },
   {
@@ -25,7 +27,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-05 08:56:58.631363",
+ "modified": "2025-03-05 16:36:45.957167",
  "modified_by": "Administrator",
  "module": "Project Manager",
  "name": "TaskDepartment",
