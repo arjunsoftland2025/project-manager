@@ -1,0 +1,101 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:project_name",
+ "creation": "2025-03-05 08:56:08.294645",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "assigned_department",
+  "project_name",
+  "project_description",
+  "start_date",
+  "end_date",
+  "project_status"
+ ],
+ "fields": [
+  {
+   "fieldname": "assigned_department",
+   "fieldtype": "Link",
+   "label": "Assigned Department",
+   "options": "TaskDepartment"
+  },
+  {
+   "fieldname": "project_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Name of project",
+   "unique": 1
+  },
+  {
+   "fieldname": "project_description",
+   "fieldtype": "Text",
+   "in_list_view": 1,
+   "label": "Project details"
+  },
+  {
+   "fieldname": "start_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Project start date"
+  },
+  {
+   "fieldname": "end_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "End Date"
+  },
+  {
+   "fieldname": "project_status",
+   "fieldtype": "Select",
+   "label": "Project Status",
+   "options": "Live\nCompleted\nOn Hold"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-03-05 09:23:16.240028",
+ "modified_by": "Administrator",
+ "module": "Project Manager",
+ "name": "TaskProject",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Task-Boss",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Task-Employee",
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -7,8 +7,8 @@ app_license = "mit"
 
 
 doc_events = {
-    "TaskDetails": {
-        "before_insert": "project_manager.services.taskdetails_naming.before_save_task",
+    "TaskLists": {
+        "before_insert": "project_manager.services.tasklists_naming.before_insert_task",
         "before_save": "project_manager.services.task_completion.before_save_task"
     }
 }

@@ -1,0 +1,190 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:custom_task_name",
+ "creation": "2025-03-05 08:49:21.461779",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "assigned_employee",
+  "column_break_w17w",
+  "task_date",
+  "task_completion_date",
+  "column_break_djhr",
+  "custom_task_name",
+  "section_break_wyuw",
+  "column_break_xryd",
+  "assigned_project",
+  "task_department",
+  "section_break_suji",
+  "task_name",
+  "task_description",
+  "task_status",
+  "task_due_date",
+  "section_break_syys",
+  "task_employee_description",
+  "task_employee_status",
+  "column_break_ti5b",
+  "task_remarks"
+ ],
+ "fields": [
+  {
+   "fieldname": "assigned_employee",
+   "fieldtype": "Link",
+   "label": "Assigned Employee",
+   "options": "TaskEmployee"
+  },
+  {
+   "fieldname": "column_break_w17w",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "task_date",
+   "fieldtype": "Date",
+   "label": "Task date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "task_completion_date",
+   "fieldtype": "Date",
+   "label": "Task Completion",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_djhr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "custom_task_name",
+   "fieldtype": "Data",
+   "label": "Custom Task Name",
+   "read_only": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "section_break_wyuw",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_xryd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "assigned_project",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Assigned Project",
+   "options": "ProjectDetails2",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "assigned_project.assigned_department",
+   "fieldname": "task_department",
+   "fieldtype": "Link",
+   "label": "Department",
+   "options": "DepartmentDetails2"
+  },
+  {
+   "fieldname": "section_break_suji",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "task_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Task Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "task_description",
+   "fieldtype": "Text",
+   "in_list_view": 1,
+   "label": "Task Description",
+   "reqd": 1
+  },
+  {
+   "fieldname": "task_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Task Status",
+   "options": "Pending\nCompleted\nClosed\nOn Hold",
+   "reqd": 1
+  },
+  {
+   "fieldname": "task_due_date",
+   "fieldtype": "Date",
+   "label": "Due date of task",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_syys",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "task_employee_description",
+   "fieldtype": "Text",
+   "label": "Employee Description"
+  },
+  {
+   "fieldname": "task_employee_status",
+   "fieldtype": "Select",
+   "label": "Employee Status",
+   "options": "Task Pending\nTask Finished"
+  },
+  {
+   "fieldname": "column_break_ti5b",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "task_remarks",
+   "fieldtype": "Text",
+   "label": "Remarks"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-03-05 09:25:20.044265",
+ "modified_by": "Administrator",
+ "module": "Project Manager",
+ "name": "TaskLists",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Task-Boss",
+   "share": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "report": 1,
+   "role": "Task-Employee",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

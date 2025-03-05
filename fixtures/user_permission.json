@@ -1,6 +1,6 @@
 [
  {
-  "allow": "EmployeeDetails",
+  "allow": "EmployeeDetails2",
   "applicable_for": null,
   "apply_to_all_doctypes": 1,
   "docstatus": 0,
@@ -13,7 +13,7 @@
   "user": "arjunkrishna@gmail.com"
  },
  {
-  "allow": "EmployeeDetails",
+  "allow": "EmployeeDetails2",
   "applicable_for": null,
   "apply_to_all_doctypes": 1,
   "docstatus": 0,
@@ -26,7 +26,7 @@
   "user": "bob@gmail.com"
  },
  {
-  "allow": "ProjectDetails",
+  "allow": "ProjectDetails2",
   "applicable_for": null,
   "apply_to_all_doctypes": 1,
   "docstatus": 0,
@@ -39,7 +39,7 @@
   "user": "bob@gmail.com"
  },
  {
-  "allow": "ProjectDetails",
+  "allow": "ProjectDetails2",
   "applicable_for": null,
   "apply_to_all_doctypes": 1,
   "docstatus": 0,
@@ -52,7 +52,7 @@
   "user": "arjunkrishna@gmail.com"
  },
  {
-  "allow": "DepartmentDetails",
+  "allow": "DepartmentDetails2",
   "applicable_for": null,
   "apply_to_all_doctypes": 1,
   "docstatus": 0,
@@ -65,7 +65,7 @@
   "user": "ashik@gmail.com"
  },
  {
-  "allow": "EmployeeDetails",
+  "allow": "EmployeeDetails2",
   "applicable_for": null,
   "apply_to_all_doctypes": 1,
   "docstatus": 0,
@@ -78,7 +78,7 @@
   "user": "nikhesh@gmail.com"
  },
  {
-  "allow": "ProjectDetails",
+  "allow": "ProjectDetails2",
   "applicable_for": null,
   "apply_to_all_doctypes": 1,
   "docstatus": 0,
