@@ -1,0 +1,217 @@
+{% extends "templates/web.html" %}
+
+{% block title %}Project Dashboard{% endblock %}
+
+{% block content %}
+
+<style type="text/css">
+    .navbar-light {
+        display: none !important;
+    }
+
+    .chat-app {
+        display: none !important;
+    }
+
+    footer {
+        display: none !important;
+    }
+</style>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<div class="container mt-4">
+    <div id="task-boss-section" style="display: none;">
+        <h2>Task Boss Dashboard</h2>
+        <h3>Welcome, <span id="boss-name"></span> | <span class="text-success" id="role-name"></span></h3>
+        <p>Manage all tasks and employees here.</p>
+    </div>
+    
+    <div id="task-lead-section" style="display: none;">
+        <h2>Task Lead Dashboard</h2>
+        <h3>Welcome, <span id="lead-name"></span> | <span class="text-success" id="role-name"></span></h3>
+        <p>Manage tasks within your department.</p>
+    </div>
+    
+    <div id="task-employee-section" style="display: none;">
+        <h2>Task Employee Dashboard</h2>
+        <h3>Welcome, <span id="employee-name"></span> | <span class="text-success" id="role-name"></span></h3>
+        <p>View assigned tasks.</p>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <a href="/project-list" class="text-decoration-none text-white">
+                <div class="card text-white bg-primary mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            View Project List
+                        </h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="/employee-management" class="text-decoration-none text-white">
+                <div class="card text-white bg-success mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            Employee Management
+                        </h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <h4>Recent Tasks</h4>
+    <div id="error-message" class="alert alert-danger d-none"></div>
+    <table class="table table-striped mb-4">
+        <thead>
+            <tr>
+                <th>Task Name</th>
+                <th>Description</th>
+                <th>Due Date</th>
+                <th>Department</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="recent-tasks">
+        </tbody>
+    </table>
+    <div id="lead-table">
+        <h4>Lead Tasks</h4>
+        <table class="table table-striped mb-2">
+            <thead>
+                <tr>
+                    <th>Task Name</th>
+                    <th>Description</th>
+                    <th>Due Date</th>
+                    <th>Department</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="lead-tasks">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    checkUserRole();
+});
+
+async function checkUserRole() {
+    try {
+        const userResponse = await fetch("/api/method/frappe.auth.get_logged_user");
+        const userData = await userResponse.json();
+        const loggedUser = userData.message;
+
+        const roleResponse = await fetch(`/api/method/project_manager.api.get_user_details?email=${loggedUser}`);
+        const roleData = await roleResponse.json();
+        const userRole = roleData.message.role_profile_name;
+        const userName = roleData.message.full_name;
+
+        if (userRole === "Task-Boss") {
+            document.getElementById("task-boss-section").style.display = "block";
+            document.getElementById("boss-name").textContent = userName;
+            document.getElementById("role-name").textContent = "Head";
+            document.getElementById("lead-table").style.display = "none";
+        } else if (userRole === "Task-Lead") {
+            document.getElementById("task-lead-section").style.display = "block";
+            document.getElementById("lead-name").textContent = userName;
+            document.getElementById("role-name").textContent = "Lead";
+        } else if (userRole === "Task-Employee") {
+            document.getElementById("task-employee-section").style.display = "block";
+            document.getElementById("employee-name").textContent = userName;
+            document.getElementById("role-name").textContent = "Employee";
+            document.getElementById("lead-table").style.display = "none";
+        } else {
+            alert("Unauthorized access.");
+            window.location.href = "/";
+            return;
+        }
+
+        fetchDashboardData(userRole);
+
+
+    } catch (error) {
+        console.error("Error fetching user role:", error);
+    }
+}
+
+async function fetchDashboardData(fetchRole) {
+    const taskTable = document.getElementById("recent-tasks");
+    const leadTable = document.getElementById("lead-tasks");
+    const errorMessage = document.getElementById("error-message");
+
+    if (!errorMessage) {
+        console.error("Error: #error-message element not found in HTML.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/method/project_manager.api.get_dashboard_data?role_profile_name=${fetchRole}`);
+        const data = await response.json();
+        console.log(data.message);
+
+        if (data.message && data.message.success) {
+            if (!data.message.tasks || data.message.tasks.length === 0) {
+                errorMessage.textContent = "No tasks assigned to you.";
+                errorMessage.classList.remove("d-none");
+            } else {
+                taskTable.innerHTML = "";
+                data.message.tasks.forEach(task => {
+                    let row = `
+                        <tr>
+                            <td>${task.task_name}</td>
+                            <td>${task.task_description}</td>
+                            <td>${task.task_due_date || "N/A"}</td>
+                            <td>${task.task_department}</td>
+                            <td>${task.task_employee_status}</td>
+                            <td><a href="/task-details?task_id=${task.task_name}" class="btn btn-sm btn-primary">View</a></td>
+                        </tr>
+                    `;
+                    taskTable.innerHTML += row;
+                });
+            }
+
+            if (data.message.leadtasks && data.message.leadtasks.length > 0) {
+                leadTable.innerHTML = "";
+                data.message.leadtasks.forEach(leadtask => {
+                    let row = `
+                        <tr>
+                            <td>${leadtask.task_name}</td>
+                            <td>${leadtask.task_description}</td>
+                            <td>${leadtask.task_due_date || "N/A"}</td>
+                            <td>${leadtask.task_department}</td>
+                            <td>${leadtask.task_employee_status}</td>
+                            <td><a href="/task-details?task_id=${leadtask.task_name}" class="btn btn-sm btn-primary">View</a></td>
+                        </tr>
+                    `;
+                    leadTable.innerHTML += row;
+                });
+            } else {
+                leadTable.innerHTML = "<tr><td colspan='6' class='text-center'>No lead tasks assigned.</td></tr>";
+            }
+        } else {
+            errorMessage.textContent = "Error fetching tasks.";
+            errorMessage.classList.remove("d-none");
+            console.error("Error from API:", data.message);
+        }
+    } catch (error) {
+        errorMessage.textContent = "Error connecting to server.";
+        errorMessage.classList.remove("d-none");
+        console.error("Fetch Error:", error);
+    }
+}
+
+
+</script>
+
+{% endblock %}

@@ -13,6 +13,11 @@ doc_events = {
     }
 }
 
+# web_pages = {
+#     "project-dashboard": {
+#         "role": ["Task-Boss", "Task-Lead", "Task-Employee"]
+#     }
+# }
 
 ###################################################################
 

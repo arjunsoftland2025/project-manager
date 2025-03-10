@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "assigned_employee",
+  "assigned_by",
   "column_break_w17w",
   "task_date",
   "task_completion_date",
@@ -83,7 +84,7 @@
    "fieldname": "task_department",
    "fieldtype": "Link",
    "label": "Department",
-   "options": "DepartmentDetails2",
+   "options": "TaskDepartment",
    "reqd": 1
   },
   {
@@ -142,11 +143,17 @@
    "fieldname": "task_remarks",
    "fieldtype": "Text",
    "label": "Remarks"
+  },
+  {
+   "fieldname": "assigned_by",
+   "fieldtype": "Data",
+   "label": "Assigned By",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-05 17:14:57.928196",
+ "modified": "2025-03-06 17:03:04.468996",
  "modified_by": "Administrator",
  "module": "Project Manager",
  "name": "TaskLists",

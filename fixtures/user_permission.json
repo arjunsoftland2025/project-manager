@@ -89,5 +89,18 @@
   "modified": "2025-03-05 12:01:21.947263",
   "name": "bqvamh7pi3",
   "user": "arjunkrishna@gmail.com"
+ },
+ {
+  "allow": "TaskDepartment",
+  "applicable_for": null,
+  "apply_to_all_doctypes": 1,
+  "docstatus": 0,
+  "doctype": "User Permission",
+  "for_value": "Python",
+  "hide_descendants": 0,
+  "is_default": 0,
+  "modified": "2025-03-06 12:35:40.242529",
+  "name": "dc5k2no1k6",
+  "user": "mac@gmail.com"
  }
 ]
