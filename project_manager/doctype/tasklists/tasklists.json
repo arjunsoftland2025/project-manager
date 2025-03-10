@@ -19,6 +19,9 @@
   "task_department",
   "section_break_suji",
   "task_name",
+  "column_break_yhlc",
+  "task_type",
+  "section_break_wh3c",
   "task_description",
   "task_status",
   "task_due_date",
@@ -149,11 +152,26 @@
    "fieldtype": "Data",
    "label": "Assigned By",
    "read_only": 1
+  },
+  {
+   "fieldname": "task_type",
+   "fieldtype": "Select",
+   "label": "Task Type",
+   "options": "Development\nModify\nBug-fix\nError\nProject Learning\nDeletion\nAdd-on\nCode Simplification\nMiscellaneous",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_yhlc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_wh3c",
+   "fieldtype": "Section Break"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-03-06 17:03:04.468996",
+ "modified": "2025-03-10 16:09:39.849787",
  "modified_by": "Administrator",
  "module": "Project Manager",
  "name": "TaskLists",

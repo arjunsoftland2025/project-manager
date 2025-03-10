@@ -23,59 +23,77 @@ def get_user_details(email=None):
     
     except Exception as e:
         return {"error": str(e)}
+    
 
 @frappe.whitelist()
-def get_dashboard_data(role_profile_name=None, user_email=None):
+def get_dashboard_data(role_profile_name=None):
     try:
+        user_email = frappe.session.user
+        
         if role_profile_name == "Task-Boss":
             tasks = frappe.db.get_list(
                 "TaskLists",
                 filters={},
-                fields=["assigned_project", "task_name", "task_type", "assigned_employee", "assigned_by", "task_date", "task_due_date", "task_department", "task_status"]
+                fields=["name", "task_name", "task_description", "task_due_date", "task_department", "task_employee_status"]
             )
+            leadtasks = None
         elif role_profile_name == "Task-Lead":
             user_doc = frappe.get_doc("TaskEmployee", {"email": user_email})
             user_full_name = user_doc.full_name
             user_department_name = user_doc.department_name
+
             tasks = frappe.db.get_list(
                 "TaskLists",
                 filters={"task_department": user_department_name, "assigned_employee": ["!=", user_full_name]},
-                fields=["assigned_project", "task_name", "task_type", "assigned_employee", "assigned_by", "task_date", "task_due_date", "task_department", "task_status"]
+                fields=["name", "task_name", "task_description", "task_due_date", "task_department", "task_employee_status"]
+            )
+            leadtasks =  frappe.db.get_list(
+                "TaskLists",
+                filters={"task_department": user_department_name, "assigned_employee": user_full_name},
+                fields=["name", "task_name", "task_description", "task_due_date", "task_department", "task_employee_status"]
             )
         else:
             user_doc = frappe.get_doc("TaskEmployee", {"email": user_email})
             user_full_name = user_doc.full_name
             user_department_name = user_doc.department_name
+            
             tasks = frappe.db.get_list(
                 "TaskLists",
                 filters={"assigned_employee": user_full_name},
-                fields=["assigned_project", "task_name", "task_type", "assigned_employee", "assigned_by", "task_date", "task_due_date", "task_department", "task_status"]
+                fields=["name", "task_name", "task_description", "task_due_date", "task_department", "task_employee_status"]
             )
-        return {"success": True, "tasks": tasks}
+            leadtasks = None
+        return {"success": True, "tasks": tasks, "leadtasks": leadtasks}
+
     except Exception as e:
         frappe.log_error(f"Dashboard Data Error: {str(e)}", "get_dashboard_data")
         return {"success": False, "error": str(e)}
     
 @frappe.whitelist()
-def get_lead_dashboard_data(role_profile_name=None, user_email=None):
+def get_lead_dashboard_data(role_profile_name=None):
     try:
+        user_email = frappe.session.user
+        
         if role_profile_name == "Task-Boss":
             leadtasks = None
         elif role_profile_name == "Task-Lead":
             user_doc = frappe.get_doc("TaskEmployee", {"email": user_email})
             user_full_name = user_doc.full_name
             user_department_name = user_doc.department_name
+
             leadtasks =  frappe.db.get_list(
                 "TaskLists",
                 filters={"task_department": user_department_name, "assigned_employee": user_full_name},
-                fields=["assigned_project", "task_name", "task_type", "assigned_employee", "assigned_by", "task_date", "task_due_date", "task_department", "task_status"]
+                fields=["name", "task_name", "task_description", "task_due_date", "task_department", "task_employee_status"]
             )
         else:
             user_doc = frappe.get_doc("TaskEmployee", {"email": user_email})
             user_full_name = user_doc.full_name
             user_department_name = user_doc.department_name
+            
             leadtasks = None
         return {"success": True, "leadtasks": leadtasks}
+
     except Exception as e:
         frappe.log_error(f"Dashboard Data Error: {str(e)}", "get_dashboard_data")
         return {"success": False, "error": str(e)}
@@ -100,7 +118,7 @@ def get_project_list():
     )
 
     project_list = []
-
+    
     for project in projects:
         task_count = frappe.db.count("TaskLists", {"assigned_project": project["project_id"]})
         pending_tasks = frappe.db.count("TaskLists", {"assigned_project": project["project_id"], "task_status": "Pending"})
@@ -136,26 +154,7 @@ def get_project_details(project_id):
 def get_task_details(task_id):
     try:
         task = frappe.get_doc("TaskLists", {"task_name": task_id})
-        return {
-            "success": True,
-            "task_name": task.task_name,
-            "task_type": task.task_type,
-            "task_date": task.task_date,
-            "task_assigned_by": task.assigned_by,
-            "assigned_project": task.assigned_project,
-            "task_description": task.task_description,
-            "task_due_date": task.task_due_date,
-            "task_assigned": task.assigned_employee,
-            "task_department": task.task_department,
-            "task_status": task.task_status
-        }
-    except frappe.DoesNotExistError:
-        return {"success": False, "error": "Task not found"}
-    
-@frappe.whitelist()   
-def get_task_details_each_employee(each_employee):
-    try:
-        task = frappe.get_doc("TaskLists", {"assigned_employee": each_employee})
+
         return {
             "success": True,
             "task_name": task.task_name,

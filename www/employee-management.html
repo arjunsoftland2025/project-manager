@@ -48,16 +48,21 @@ async function fetchEmployees() {
         const employeeResponse = await fetch("/api/method/project_manager.api.get_all_employees");
         const employeeObj = await employeeResponse.json();
         const employeeData = employeeObj.message;
+        console.log("Employee data:", employeeData.message);
 
         if (employeeData.message && employeeData.message.length > 0) {
             employeeTable.innerHTML = "";
             employeeData.message.forEach(employee => {
+                let isHeadOrLead = (employee.department_post.toLowerCase() === "head" || employee.department_post.toLowerCase() === "lead");
                 let row = `
                     <tr>
                         <td>${employee.full_name}</td>
-                        <td>${employee.email}
+                        <td>${employee.email}</td>
                         <td>${employee.department_name}</td>
                         <td>${employee.department_post}</td>
+                        <td>
+                            ${isHeadOrLead ? "" : `<a href="/employee-task?role_profile_name=${employee.department_post}&email=${employee.email}" class="btn btn-sm btn-primary">View</a>`}
+                        </td>
                     </tr>
                 `;
                 employeeTable.innerHTML += row;
@@ -70,6 +75,7 @@ async function fetchEmployees() {
         errorMessage.classList.remove("d-none");
         console.error("Error fetching employees:", error);
     }
+
 }
 </script>
 

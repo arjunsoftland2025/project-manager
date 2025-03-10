@@ -23,19 +23,19 @@
 <div class="container mt-4">
     <div id="task-boss-section" style="display: none;">
         <h2>Task Boss Dashboard</h2>
-        <h3>Welcome, <span id="boss-name"></span> | <span class="text-success" id="role-name"></span></h3>
+        <h3>Welcome, <span id="boss-name"></span> | <span class="text-success" id="role-name">Boss</span></h3>
         <p>Manage all tasks and employees here.</p>
     </div>
     
     <div id="task-lead-section" style="display: none;">
         <h2>Task Lead Dashboard</h2>
-        <h3>Welcome, <span id="lead-name"></span> | <span class="text-success" id="role-name"></span></h3>
+        <h3>Welcome, <span id="lead-name"></span> | <span class="text-success" id="role-name">Lead</span></h3>
         <p>Manage tasks within your department.</p>
     </div>
     
     <div id="task-employee-section" style="display: none;">
         <h2>Task Employee Dashboard</h2>
-        <h3>Welcome, <span id="employee-name"></span> | <span class="text-success" id="role-name"></span></h3>
+        <h3>Welcome, <span id="employee-name"></span> | <span class="text-success" id="role-name">Head</span></h3>
         <p>View assigned tasks.</p>
     </div>
 
@@ -64,29 +64,37 @@
         </div>
     </div>
 
-    <h4>Recent Tasks</h4>
     <div id="error-message" class="alert alert-danger d-none"></div>
-    <table class="table table-striped mb-4">
-        <thead>
-            <tr>
-                <th>Task Name</th>
-                <th>Description</th>
-                <th>Due Date</th>
-                <th>Department</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="recent-tasks">
-        </tbody>
-    </table>
-    <div id="lead-table">
-        <h4>Lead Tasks</h4>
-        <table class="table table-striped mb-2">
+    <div id="employee-table">
+        <h4 class="mt-4">Employee Tasks</h4>
+        <table class="table table-striped mb-4">
             <thead>
                 <tr>
                     <th>Task Name</th>
-                    <th>Description</th>
+                    <th>Assigned to</th>
+                    <th>Assigned by</th>
+                    <th>Start Date</th>
+                    <th>Due Date</th>
+                    <th>Department</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="recent-tasks">
+            </tbody>
+        </table>
+    </div>
+    <div id="lead-table">
+        <h4 class="mt-4">Lead Tasks</h4>
+        <table class="table table-striped mb-2">
+            <thead>
+                <tr>
+                    <th>Project Name</th>
+                    <th>Task Name</th>
+                    <th>Task Type</th>
+                    <th>Assigned to</th>
+                    <th>Assigned by</th>
+                    <th>Start Date</th>
                     <th>Due Date</th>
                     <th>Department</th>
                     <th>Status</th>
@@ -120,16 +128,14 @@ async function checkUserRole() {
         if (userRole === "Task-Boss") {
             document.getElementById("task-boss-section").style.display = "block";
             document.getElementById("boss-name").textContent = userName;
-            document.getElementById("role-name").textContent = "Head";
             document.getElementById("lead-table").style.display = "none";
         } else if (userRole === "Task-Lead") {
             document.getElementById("task-lead-section").style.display = "block";
             document.getElementById("lead-name").textContent = userName;
-            document.getElementById("role-name").textContent = "Lead";
+            document.getElementById("employee-table").style.display = "none";
         } else if (userRole === "Task-Employee") {
             document.getElementById("task-employee-section").style.display = "block";
             document.getElementById("employee-name").textContent = userName;
-            document.getElementById("role-name").textContent = "Employee";
             document.getElementById("lead-table").style.display = "none";
         } else {
             alert("Unauthorized access.");
@@ -137,7 +143,7 @@ async function checkUserRole() {
             return;
         }
 
-        fetchDashboardData(userRole);
+        fetchDashboardData(userRole, loggedUser);
 
 
     } catch (error) {
@@ -145,7 +151,8 @@ async function checkUserRole() {
     }
 }
 
-async function fetchDashboardData(fetchRole) {
+async function fetchDashboardData(fetchRole, fetchUser) {
+    console.log(fetchRole, fetchUser);
     const taskTable = document.getElementById("recent-tasks");
     const leadTable = document.getElementById("lead-tasks");
     const errorMessage = document.getElementById("error-message");
@@ -156,7 +163,7 @@ async function fetchDashboardData(fetchRole) {
     }
 
     try {
-        const response = await fetch(`/api/method/project_manager.api.get_dashboard_data?role_profile_name=${fetchRole}`);
+        const response = await fetch(`/api/method/project_manager.api.get_dashboard_data?role_profile_name=${fetchRole}&user_email=${fetchUser}`);
         const data = await response.json();
         console.log(data.message);
 
@@ -169,25 +176,48 @@ async function fetchDashboardData(fetchRole) {
                 data.message.tasks.forEach(task => {
                     let row = `
                         <tr>
+                            <td>${task.assigned_project}</td>
                             <td>${task.task_name}</td>
-                            <td>${task.task_description}</td>
+                            <td>${task.task_type}</td>
+                            <td>${task.assigned_employee}</td>
+                            <td>${task.assigned_by}</td>
+                            <td>${task.task_date}</td>
                             <td>${task.task_due_date || "N/A"}</td>
                             <td>${task.task_department}</td>
-                            <td>${task.task_employee_status}</td>
+                            <td>${task.task_status}</td>
                             <td><a href="/task-details?task_id=${task.task_name}" class="btn btn-sm btn-primary">View</a></td>
                         </tr>
                     `;
                     taskTable.innerHTML += row;
                 });
             }
+        } else {
+            errorMessage.textContent = "Error fetching tasks.";
+            errorMessage.classList.remove("d-none");
+            console.error("Error from API:", data.message);
+        }
+    } catch (error) {
+        errorMessage.textContent = "Error connecting to server.";
+        errorMessage.classList.remove("d-none");
+        console.error("Fetch Error:", error);
+    }
+    try {
+        const response = await fetch(`/api/method/project_manager.api.get_lead_dashboard_data?role_profile_name=${fetchRole}&user_email=${fetchUser}`);
+        const data = await response.json();
+        console.log(data.message);
 
+        if (data.message && data.message.success) {
             if (data.message.leadtasks && data.message.leadtasks.length > 0) {
                 leadTable.innerHTML = "";
                 data.message.leadtasks.forEach(leadtask => {
                     let row = `
                         <tr>
+                            <td>${leadtask.assigned_project}</td>
                             <td>${leadtask.task_name}</td>
-                            <td>${leadtask.task_description}</td>
+                            <td>${leadtask.task_type}</td>
+                            <td>${leadtask.assigned_employee}</td>
+                            <td>${leadtask.assigned_by}</td>
+                            <td>${leadtask.task_date}</td>
                             <td>${leadtask.task_due_date || "N/A"}</td>
                             <td>${leadtask.task_department}</td>
                             <td>${leadtask.task_employee_status}</td>
@@ -210,7 +240,6 @@ async function fetchDashboardData(fetchRole) {
         console.error("Fetch Error:", error);
     }
 }
-
 
 </script>
 

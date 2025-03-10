@@ -1,0 +1,125 @@
+{% extends "templates/web.html" %}
+
+{% block title %}Employee Management{% endblock %}
+
+{% block content %}
+
+<style type="text/css">
+    .navbar-light {
+        display: none !important;
+    }
+
+    .chat-app {
+        display: none !important;
+    }
+
+    footer {
+        display: none !important;
+    }
+</style>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<div class="container mt-4">
+
+    <div id="error-message" class="alert alert-danger d-none"></div>
+    <div id="employee-table">
+        <h4 class="mt-4">Employee Tasks</h4>
+        <table class="table table-striped mb-4">
+            <thead>
+                <tr>
+                    <th>Project Name</th>
+                    <th>Task Name</th>
+                    <th>Task Type</th>
+                    <th>Assigned to</th>
+                    <th>Assigned by</th>
+                    <th>Task Date</th>
+                    <th>Due Date</th>
+                    <th>Department</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="recent-tasks">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    fetchDashboardData();
+});
+
+
+async function fetchDashboardData() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const roleProfileName = urlParams.get("role_profile_name");
+    const fetchUser = urlParams.get("email");
+
+    if (roleProfileName === "Head") {
+        fetchRole = "Task-Boss";
+    } else if (roleProfileName === "Lead") {
+        fetchRole = "Task-Lead";
+    } else {
+        fetchRole = "Task-Employee";
+    }
+
+    console.log("fetchRole:", fetchRole);
+    console.log("fetchUser:", fetchUser);
+
+    const taskTable = document.getElementById("recent-tasks");
+    const leadTable = document.getElementById("lead-tasks");
+    const errorMessage = document.getElementById("error-message");
+
+    if (!errorMessage) {
+        console.error("Error: #error-message element not found in HTML.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/method/project_manager.api.get_dashboard_data?role_profile_name=${fetchRole}&user_email=${fetchUser}`);
+        const data = await response.json();
+        console.log(data.message);
+
+        if (data.message && data.message.success) {
+            if (!data.message.tasks || data.message.tasks.length === 0) {
+                errorMessage.textContent = "No tasks assigned to you.";
+                errorMessage.classList.remove("d-none");
+            } else {
+                taskTable.innerHTML = "";
+                data.message.tasks.forEach(task => {
+                    let row = `
+                        <tr>
+                            <td>${task.assigned_project}</td>
+                            <td>${task.task_name}</td>
+                            <td>${task.task_type}</td>
+                            <td>${task.assigned_employee}</td>
+                            <td>${task.assigned_by}</td>
+                            <td>${task.task_date}</td>
+                            <td>${task.task_due_date || "N/A"}</td>
+                            <td>${task.task_department}</td>
+                            <td>${task.task_status}</td>
+                            <td><a href="/task-details?task_id=${task.task_name}" class="btn btn-sm btn-primary">View</a></td>
+                        </tr>
+                    `;
+                    taskTable.innerHTML += row;
+                });
+            }
+        } else {
+            errorMessage.textContent = "Error fetching tasks.";
+            errorMessage.classList.remove("d-none");
+            console.error("Error from API:", data.message);
+        }
+    } catch (error) {
+        errorMessage.textContent = "Error connecting to server.";
+        errorMessage.classList.remove("d-none");
+        console.error("Fetch Error:", error);
+    }
+}
+
+</script>
+
+{% endblock %}

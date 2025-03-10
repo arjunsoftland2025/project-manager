@@ -22,11 +22,59 @@
 
 <div class="container mt-5">
     <h2 class="text-center mb-5">Task: <span id="task-name"></span></h2>
-    <p><strong>Description:</strong> <span id="task-description"></span></p>
-    <p><strong>Due Date:</strong> <span id="task-due-date"></span></p>
-    <p><strong>Assigned To:</strong> <span id="task-assigned"></span></p>
-    <p><strong>Department:</strong> <span id="task-department"></span></p>
-    <p><strong>Status:</strong> <span id="task-status"></span></p>
+    <table class="table table-striped">
+        <tbody>
+            <tr>
+                <th>Department:</th>
+                <td><span id="task-department"></span></td>
+            </tr>
+            <tr>
+                <th>Assigned by:</th>
+                <td><span id="task-assigned-by"></span></td>
+            </tr>
+            <tr>
+                <th>Assigned To:</th>
+                <td><span id="task-assigned"></span></td>
+            </tr>
+            <tr>
+                <th>Type:</th>
+                <td><span id="task-type"></span></td>
+            </tr>
+            <tr>
+                <th>Date:</th>
+                <td><span id="task-date"></span></td>
+            </tr>
+            <tr>
+                <th>Due Date:</th>
+                <td><span id="task-due-date"></span></td>
+            </tr>
+            <tr>
+                <th>Description:</th>
+                <td><span id="task-description"></span></td>
+            </tr>
+            <tr>
+                <th>Status:</th>
+                <td><span id="task-status"></span></td>
+            </tr>
+            <form action="">
+                <tr>
+                    <th>Employee Feedback:</th> 
+                    <td>
+                        <textarea name="task_employee_description" id="task_employee_description" rows="5" cols="50"></textarea>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </td>
+
+                </tr>
+                <tr>
+                    <th>Remarks</th> 
+                    <td>
+                        <textarea name="task_remarks" id="task_remarks" rows="5" cols="50"></textarea>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </td>
+                </tr>
+            </form>
+        </tbody>
+    </table>
 </div>
 
 <script>
@@ -50,9 +98,12 @@ async function fetchTaskDetails() {
         console.log(data)
 
         if (data.message) {
+            document.getElementById("task-assigned-by").textContent = data.message.task_assigned_by;
+            document.getElementById("task-type").textContent = data.message.task_type;
+            document.getElementById("task-date").textContent = data.message.task_date;
+            document.getElementById("task-due-date").textContent = data.message.task_due_date || "N/A";
             document.getElementById("task-name").textContent = data.message.task_name;
             document.getElementById("task-description").textContent = data.message.task_description;
-            document.getElementById("task-due-date").textContent = data.message.task_due_date || "N/A";
             document.getElementById("task-assigned").textContent = data.message.task_assigned || "Unassigned";
             document.getElementById("task-department").textContent = data.message.task_department || "N/A";
             document.getElementById("task-status").textContent = data.message.task_status;
