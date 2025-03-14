@@ -95,7 +95,7 @@ async function fetchDashboardData() {
                     let deleteButton = "";
                     
                     if (fetchRole === "Task-Employee") {
-                        updateButton = `<a href="/project-update-task?task_id=${task.task_name}" class="btn btn-sm btn-warning">Update</a>`;
+                        updateButton = `<a href="/project-update-task?task_name=${task.task_name}" class="btn btn-sm btn-warning">Update</a>`;
                         deleteButton = `<button class="btn btn-sm btn-danger" onclick="deleteTask('${task.task_name}')">Delete</button>`;
                     }
 
