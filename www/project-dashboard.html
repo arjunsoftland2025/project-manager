@@ -35,7 +35,7 @@
     
     <div id="task-employee-section" style="display: none;">
         <h2>Task Employee Dashboard</h2>
-        <h3>Welcome, <span id="employee-name"></span> | <span class="text-success" id="role-name">Head</span></h3>
+        <h3>Welcome, <span id="employee-name"></span> | <span class="text-success" id="role-name">Employee</span></h3>
         <p>View assigned tasks.</p>
     </div>
 
@@ -51,7 +51,7 @@
                 </div>
             </a>
         </div>
-        <div class="col-md-3">
+        <div id="employee-management-button" class="col-md-3">
             <a href="/employee-management" class="text-decoration-none text-white">
                 <div class="card text-white bg-success mb-3">
                     <div class="card-body">
@@ -62,22 +62,39 @@
                 </div>
             </a>
         </div>
+        <div id="create-task-button" class="col-md-3">
+            <a href="/project-create-task" class="text-decoration-none text-white">
+                <div class="card text-white bg-success mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            Task Management
+                        </h5>
+                    </div>
+                </div>
+            </a>
+        </div>
     </div>
+    
 
     <div id="error-message" class="alert alert-danger d-none"></div>
     <div id="employee-table">
         <h4 class="mt-4">Employee Tasks</h4>
+        <div class="d-flex justify-content-end mb-2">
+            <button type="button" class="btn btn-sm btn-primary" id="filter-completed-employee">Filter Completed</button>
+        </div>
         <table class="table table-striped mb-4">
             <thead>
                 <tr>
+                    <th>Project Name</th>
                     <th>Task Name</th>
+                    <th>Task Type</th>
                     <th>Assigned to</th>
                     <th>Assigned by</th>
                     <th>Start Date</th>
                     <th>Due Date</th>
                     <th>Department</th>
                     <th>Status</th>
-                    <th>Actions</th>
+                    <th colspan="3" class="text-center">Actions</th>
                 </tr>
             </thead>
             <tbody id="recent-tasks">
@@ -98,7 +115,7 @@
                     <th>Due Date</th>
                     <th>Department</th>
                     <th>Status</th>
-                    <th>Actions</th>
+                    <th colspan="3" class="text-center">Actions</th>
                 </tr>
             </thead>
             <tbody id="lead-tasks">
@@ -129,19 +146,26 @@ async function checkUserRole() {
             document.getElementById("task-boss-section").style.display = "block";
             document.getElementById("boss-name").textContent = userName;
             document.getElementById("lead-table").style.display = "none";
+            document.getElementById("create-task-button").style.display = "block";
+            document.getElementById("employee-management-button").style.display = "block";
         } else if (userRole === "Task-Lead") {
             document.getElementById("task-lead-section").style.display = "block";
             document.getElementById("lead-name").textContent = userName;
             document.getElementById("employee-table").style.display = "none";
+            document.getElementById("create-task-button").style.display = "block";
+            document.getElementById("employee-management-button").style.display = "block";
         } else if (userRole === "Task-Employee") {
             document.getElementById("task-employee-section").style.display = "block";
             document.getElementById("employee-name").textContent = userName;
             document.getElementById("lead-table").style.display = "none";
+            document.getElementById("create-task-button").style.display = "none";
+            document.getElementById("employee-management-button").style.display = "none";
         } else {
             alert("Unauthorized access.");
             window.location.href = "/";
             return;
         }
+        console.log(userRole);
 
         fetchDashboardData(userRole, loggedUser);
 
@@ -174,6 +198,15 @@ async function fetchDashboardData(fetchRole, fetchUser) {
             } else {
                 taskTable.innerHTML = "";
                 data.message.tasks.forEach(task => {
+                    let updateButton = "";
+                    let deleteButton = "";
+                    
+                    // Only Task-Boss and Task-Lead can see the update button
+                    if (fetchRole === "Task-Boss" || fetchRole === "Task-Lead") {
+                        updateButton = `<a href="/project-update-task?task_id=${task.task_name}" class="btn btn-sm btn-warning">Update</a>`;
+                        deleteButton = `<button class="btn btn-sm btn-danger" onclick="deleteTask('${task.task_name}')">Delete</button>`;
+                    }
+
                     let row = `
                         <tr>
                             <td>${task.assigned_project}</td>
@@ -186,6 +219,8 @@ async function fetchDashboardData(fetchRole, fetchUser) {
                             <td>${task.task_department}</td>
                             <td>${task.task_status}</td>
                             <td><a href="/task-details?task_id=${task.task_name}" class="btn btn-sm btn-primary">View</a></td>
+                            <td>${updateButton}</td>
+                            <td>${deleteButton}</td>
                         </tr>
                     `;
                     taskTable.innerHTML += row;
@@ -210,6 +245,8 @@ async function fetchDashboardData(fetchRole, fetchUser) {
             if (data.message.leadtasks && data.message.leadtasks.length > 0) {
                 leadTable.innerHTML = "";
                 data.message.leadtasks.forEach(leadtask => {
+                    let updateButton = "";
+
                     let row = `
                         <tr>
                             <td>${leadtask.assigned_project}</td>
@@ -220,8 +257,10 @@ async function fetchDashboardData(fetchRole, fetchUser) {
                             <td>${leadtask.task_date}</td>
                             <td>${leadtask.task_due_date || "N/A"}</td>
                             <td>${leadtask.task_department}</td>
-                            <td>${leadtask.task_employee_status}</td>
+                            <td>${leadtask.task_status}</td>
                             <td><a href="/task-details?task_id=${leadtask.task_name}" class="btn btn-sm btn-primary">View</a></td>
+                            <td><a href="/project-update-task?task_name=${leadtask.task_name}" class="btn btn-sm btn-warning">Update</a></td>
+                            <td><button class="btn btn-sm btn-danger" onclick="deleteTask('${leadtask.task_name}')">Delete</button></td>
                         </tr>
                     `;
                     leadTable.innerHTML += row;
@@ -240,6 +279,37 @@ async function fetchDashboardData(fetchRole, fetchUser) {
         console.error("Fetch Error:", error);
     }
 }
+
+function deleteTask(taskName) {
+    if (!confirm(`Are you sure you want to delete task: ${taskName}?`)) {
+        return;
+    }
+
+    frappe.call({
+        method: "project_manager.api.delete_task",
+        args: { task_name: taskName },
+        callback: function(response) {
+            if (response.message) {
+                alert(response.message);
+                location.reload();  // Refresh dashboard after deletion
+            } else {
+                alert("Failed to delete task.");
+            }
+        }
+    });
+}
+
+document.getElementById("filter-completed-employee").addEventListener("click", function() {
+    const rows = document.querySelectorAll("#recent-tasks tr");
+    rows.forEach(row => {
+        if (row.cells.length > 3 && row.cells[3].textContent.trim() === "Completed") {
+            row.style.display = "table-row";
+        } else {
+            row.style.display = "none";
+        }
+    });
+});
+
 
 </script>
 

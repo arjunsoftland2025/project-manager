@@ -91,6 +91,14 @@ async function fetchDashboardData() {
             } else {
                 taskTable.innerHTML = "";
                 data.message.tasks.forEach(task => {
+                    let updateButton = "";
+                    let deleteButton = "";
+                    
+                    if (fetchRole === "Task-Employee") {
+                        updateButton = `<a href="/project-update-task?task_id=${task.task_name}" class="btn btn-sm btn-warning">Update</a>`;
+                        deleteButton = `<button class="btn btn-sm btn-danger" onclick="deleteTask('${task.task_name}')">Delete</button>`;
+                    }
+
                     let row = `
                         <tr>
                             <td>${task.assigned_project}</td>
@@ -103,6 +111,8 @@ async function fetchDashboardData() {
                             <td>${task.task_department}</td>
                             <td>${task.task_status}</td>
                             <td><a href="/task-details?task_id=${task.task_name}" class="btn btn-sm btn-primary">View</a></td>
+                            <td>${updateButton}</td>
+                            <td>${deleteButton}</td>
                         </tr>
                     `;
                     taskTable.innerHTML += row;

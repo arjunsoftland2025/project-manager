@@ -24,13 +24,20 @@
     <h2>Project: <span id="project-name"></span></h2>
     <p><strong>Task Count:</strong> <span id="task-count"></span></p>
     <p><strong>Pending Tasks:</strong> <span id="pending-tasks"></span></p>
+    <p><strong>Completed Tasks:</strong> <span id="completed-tasks"></span></p>
 
-    <h4>Task List</h4>
+    <h4 class="mt-4">Task List</h4>
     <table class="table table-striped">
         <thead>
             <tr>
+                <th>Project Name</th>
                 <th>Task Name</th>
-                <th>Description</th>
+                <th>Task Type</th>
+                <th>Assigned to</th>
+                <th>Assigned by</th>
+                <th>Start Date</th>
+                <th>Due Date</th>
+                <th>Department</th>
                 <th>Status</th>
                 <th>Actions</th>
             </tr>
@@ -63,6 +70,7 @@ async function fetchProjectDetails() {
             document.getElementById("project-name").textContent = data.message.project_name;
             document.getElementById("task-count").textContent = data.message.task_count;
             document.getElementById("pending-tasks").textContent = data.message.pending_tasks;
+            document.getElementById("completed-tasks").textContent = data.message.completed_tasks;
 
             const taskTable = document.getElementById("task-list");
             taskTable.innerHTML = "";
@@ -70,8 +78,14 @@ async function fetchProjectDetails() {
             data.message.tasks.forEach(task => {
                 let row = `
                     <tr>
-                        <td>${task.task_name}<</td>
-                        <td>${task.task_description}</td>
+                        <td>${task.assigned_project}</td>
+                        <td>${task.task_name}</td>
+                        <td>${task.task_type}</td>
+                        <td>${task.assigned_employee}</td>
+                        <td>${task.assigned_by}</td>
+                        <td>${task.task_date}</td>
+                        <td>${task.task_due_date || "N/A"}</td>
+                        <td>${task.task_department}</td>
                         <td>${task.task_status}</td>
                         <td><a href="/task-details?task_id=${task.task_name}" class="btn btn-sm btn-primary">View</a></td>
                     </tr>

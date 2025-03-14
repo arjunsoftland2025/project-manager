@@ -4,10 +4,18 @@ from datetime import datetime
 def before_insert_task(doc, method):
     try:
         # Ensure task_date is set
-        if not doc.task_date:
-            doc.task_date = datetime.today().date()  # Set today's date if empty
+        # if not doc.task_date:
+        #     doc.task_date = datetime.today().date()  # Set today's date if empty
 
-        # Format task date to DD-MM-YY
+        # Format task date to DD-MM-YY   (old)
+        # formatted_date = doc.task_date.strftime('%d-%m-%y')
+
+        #####################################################
+
+        if isinstance(doc.task_date, str):
+            doc.task_date = datetime.strptime(doc.task_date, "%Y-%m-%d").date()
+
+
         formatted_date = doc.task_date.strftime('%d-%m-%y')
 
         # Ensure assigned_employee is provided and valid

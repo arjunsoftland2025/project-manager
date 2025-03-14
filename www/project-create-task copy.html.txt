@@ -1,0 +1,168 @@
+{% extends "templates/web.html" %}
+
+{% block title %}Project Dashboard{% endblock %}
+
+{% block content %}
+
+<style type="text/css">
+    .navbar-light {
+        display: none !important;
+    }
+
+    .chat-app {
+        display: none !important;
+    }
+
+    footer {
+        display: none !important;
+    }
+</style>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+
+<div class="container mt-5">
+    <h2>Create New Task</h2>
+    <form id="taskForm">
+        <div class="form-group">
+            <label>Assigned Employee:</label>
+            <select id="assigned_employee" class="form-control"></select>
+        </div>
+
+        <div class="form-group">
+            <label>Assigned Project:</label>
+            <select id="assigned_project" class="form-control"></select>
+        </div>
+
+        <div class="mb-3">
+            <label for="task_name" class="form-label">Task Name</label>
+            <input type="text" class="form-control" id="task_name" name="task_name" required>
+        </div>
+
+        <div class="form-group">
+            <label>Task Type:</label>
+            <select id="task_type" class="form-control">
+                <option>Development</option>
+                <option>Modify</option>
+                <option>Bug-fix</option>
+                <option>Error</option>
+                <option>Project Learning</option>
+                <option>Deletion</option>
+                <option>Add-on</option>
+                <option>Code Simplification</option>
+                <option>Miscellaneous</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="task_description" class="form-label">Task Description</label>
+            <textarea class="form-control" id="task_description" name="task_description" required></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="task_due_date" class="form-label">Due Date</label>
+            <input type="date" class="form-control" id="task_due_date" name="task_due_date" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Create Task</button>
+    </form>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    checkUserAccess(); // ✅ Fix: Check user roles via API
+
+    // Fetch Employees for Task Assignment
+    fetch('/api/method/project_manager.api.get_user_department')
+    .then(response => response.json())
+    .then(data => {
+        if (data.message && data.message.department_name) {
+            const user_department = data.message.department_name;
+            console.log("User's Department:", user_department); // Debugging
+
+            // Now fetch employees from the same department
+            fetch(`/api/method/project_manager.api.get_employees?department=${user_department}`)
+                .then(response => response.json())
+                .then(employeeData => {
+                    const select = document.getElementById("assigned_employee");
+                    select.innerHTML = ""; // Clear previous options
+
+                    employeeData.message.forEach(emp => {
+                        let option = document.createElement("option");
+                        option.value = emp.name;
+                        option.textContent = emp.full_name;
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => console.error("Error fetching employees:", error));
+        } else {
+            console.error("Failed to fetch user's department");
+        }
+    })
+    .catch(error => console.error("Error fetching department:", error));
+
+    // Handle Form Submission
+    document.getElementById("taskForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        let formData = {
+            task_name: document.getElementById("task_name").value.trim(),
+            task_description: document.getElementById("task_description").value.trim(),
+            task_due_date: document.getElementById("task_due_date").value,
+            assigned_employee: document.getElementById("assigned_employee").value
+        };
+
+        if (!formData.task_name || !formData.task_description || !formData.task_due_date) {
+            alert("Please fill all required fields.");
+            return;
+        }
+
+        let today = new Date().toISOString().split("T")[0];
+        if (formData.task_due_date < today) {
+            alert("Due Date cannot be in the past.");
+            return;
+        }
+
+        fetch('/api/method/project_manager.api.create_task', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-Frappe-CSRF-Token": frappe.csrf_token
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                alert("Task created successfully!");
+                window.location.reload();
+            } else {
+                alert("Error: " + data.error);
+            }
+        })
+        .catch(error => console.error("Error:", error));
+    });
+});
+
+function checkUserAccess() {
+    fetch('/api/method/frappe.auth.get_logged_user')
+        .then(response => response.json())
+        .then(userData => {
+            let user = userData.message;
+
+            return fetch(`/api/resource/User/${user}`)
+                .then(response => response.json());
+        })
+        .then(userDetails => {
+            let roles = userDetails.data.roles.map(role => role.role);
+
+            if (!roles.includes("Task-Lead") && !roles.includes("Task-Boss")) {
+                alert("Access Denied: Only Task-Lead and Task-Boss can create tasks.");
+                window.location.href = "/project-dashboard.html";
+            }
+        })
+        .catch(error => console.error("Error fetching user roles:", error));
+}
+</script>
+
+{% endblock %}

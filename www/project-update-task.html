@@ -1,0 +1,136 @@
+{% extends "templates/web.html" %}
+
+{% block title %}Update Task{% endblock %}
+
+{% block content %}
+<style type="text/css">
+    .navbar-light {
+        display: none !important;
+    }
+
+    footer {
+        display: none !important;
+    }
+</style>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<div class="container mt-5">
+    <h2 class="text-center">Update Task</h2>
+
+    <form id="update-task-form" class="mt-4">
+        <div class="mb-3">
+            <label class="form-label">Task Name</label>
+            <input type="text" id="task-name" class="form-control" readonly>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Task Description</label>
+            <textarea id="task-description" class="form-control" rows="3" required></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Due Date</label>
+            <input type="date" id="task-due-date" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Task Status</label>
+            <select id="task-status" class="form-control">
+                <option>Pending</option>
+                <option>Completed</option>
+                <option>Closed</option>
+                <option>On Hold</option>
+            </select>
+        </div>
+
+        <button type="button" onclick="updateTask()" class="btn btn-primary">Update Task</button>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    frappe.ready(() => {
+        if (frappe.session.user === "Guest") {
+            alert("Please Login");
+            window.location.href = "/login";
+        } else {
+            loadTaskData();
+        }
+    });
+
+    function getTaskNameFromURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get("task_name");
+    }
+
+    function loadTaskData() {
+        let taskName = getTaskNameFromURL();
+        console.log(taskName);
+
+        if (!taskName) {
+            alert("No Task specified.");
+            return;
+        }
+
+        frappe.call({
+            method: "project_manager.api.get_task_details_for_update",
+            args: { task_name: taskName },
+            callback: function(response) {
+                if (response.message) {
+                    let task = response.message;
+                    document.getElementById("task-name").value = task.task_name || "";
+                    document.getElementById("task-description").value = task.task_description || "";
+                    document.getElementById("task-due-date").value = task.task_due_date || "";
+                    document.getElementById("task-status").value = task.task_status || "Pending";
+                } else {
+                    alert("Task not found.");
+                }
+            }
+        });
+    }
+
+    function updateTask() {
+        let taskName = document.getElementById("task-name").value;
+        let taskDesc = document.getElementById("task-description").value.trim();
+        let dueDate = document.getElementById("task-due-date").value;
+        let taskStatus = document.getElementById("task-status").value;
+        let today = new Date().toISOString().split("T")[0];
+
+        if (!taskDesc || !dueDate) {
+            alert("All fields are required.");
+            return;
+        }
+
+        if (isNaN(Date.parse(dueDate))) {
+            alert("Invalid due date format.");
+            return;
+        }
+
+        if (dueDate < today) {
+            alert("Due Date cannot be in the past.");
+            return;
+        }
+
+        frappe.call({
+            method: "project_manager.api.update_task",
+            args: {
+                task_name: taskName,
+                task_description: taskDesc,
+                task_due_date: dueDate,
+                task_status: taskStatus
+            },
+            callback: function(response) {
+                if (response.message) {
+                    alert("Task Updated Successfully!");
+                    window.location.href = "/project-dashboard";
+                } else {
+                    alert("Failed to update task. Try again.");
+                }
+            }
+        });
+    }
+
+</script>
+{% endblock %}

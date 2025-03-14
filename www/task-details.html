@@ -24,62 +24,45 @@
     <h2 class="text-center mb-5">Task: <span id="task-name"></span></h2>
     <table class="table table-striped">
         <tbody>
-            <tr>
-                <th>Department:</th>
-                <td><span id="task-department"></span></td>
-            </tr>
-            <tr>
-                <th>Assigned by:</th>
-                <td><span id="task-assigned-by"></span></td>
-            </tr>
-            <tr>
-                <th>Assigned To:</th>
-                <td><span id="task-assigned"></span></td>
-            </tr>
-            <tr>
-                <th>Type:</th>
-                <td><span id="task-type"></span></td>
-            </tr>
-            <tr>
-                <th>Date:</th>
-                <td><span id="task-date"></span></td>
-            </tr>
-            <tr>
-                <th>Due Date:</th>
-                <td><span id="task-due-date"></span></td>
-            </tr>
-            <tr>
-                <th>Description:</th>
-                <td><span id="task-description"></span></td>
-            </tr>
-            <tr>
-                <th>Status:</th>
-                <td><span id="task-status"></span></td>
-            </tr>
-            <form action="">
-                <tr>
-                    <th>Employee Feedback:</th> 
-                    <td>
-                        <textarea name="task_employee_description" id="task_employee_description" rows="5" cols="50"></textarea>
-                        <button type="submit" class="btn btn-primary">Submit</button>
-                    </td>
-
-                </tr>
-                <tr>
-                    <th>Remarks</th> 
-                    <td>
-                        <textarea name="task_remarks" id="task_remarks" rows="5" cols="50"></textarea>
-                        <button type="submit" class="btn btn-primary">Submit</button>
-                    </td>
-                </tr>
-            </form>
+            <tr><th>Department:</th><td><span id="task-department"></span></td></tr>
+            <tr><th>Assigned by:</th><td><span id="task-assigned-by"></span></td></tr>
+            <tr><th>Assigned To:</th><td><span id="task-assigned"></span></td></tr>
+            <tr><th>Type:</th><td><span id="task-type"></span></td></tr>
+            <tr><th>Date:</th><td><span id="task-date"></span></td></tr>
+            <tr><th>Due Date:</th><td><span id="task-due-date"></span></td></tr>
+            <tr><th>Description:</th><td><span id="task-description"></span></td></tr>
+            <tr><th>Status:</th><td><span id="task-status"></span></td></tr>
+            <tr><th>Remarks:</th><td><span id="task-remarks"></span></td></tr>
         </tbody>
     </table>
+
+    <form id="task-form" class="mt-4">
+        <div class="mb-3">
+            <label class="form-label">Employee Feedback:</label>
+            <textarea name="task-employee-description" id="task-employee-description" rows="3" class="form-control"></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Employee Status:</label>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="task-employee-status" id="status-pending" value="Task Pending" checked>
+                <label class="form-check-label" for="status-pending">Task Pending</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="task-employee-status" id="status-completed" value="Task Finished">
+                <label class="form-check-label" for="status-completed">Task Finished</label>
+            </div>
+        </div>
+
+        <button type="button" onclick="updateTask()" class="btn btn-primary">Submit</button>
+    </form>
 </div>
+
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     fetchTaskDetails();
+    checkUserRole();
 });
 
 async function fetchTaskDetails() {
@@ -95,18 +78,27 @@ async function fetchTaskDetails() {
     try {
         const response = await fetch(`/api/method/project_manager.api.get_task_details?task_id=${taskId}`);
         const data = await response.json();
-        console.log(data)
+        console.log("Task Details:", data);
 
         if (data.message) {
+            document.getElementById("task-name").textContent = data.message.task_name;
+            document.getElementById("task-department").textContent = data.message.task_department || "N/A";
             document.getElementById("task-assigned-by").textContent = data.message.task_assigned_by;
+            document.getElementById("task-assigned").textContent = data.message.task_assigned || "Unassigned";
             document.getElementById("task-type").textContent = data.message.task_type;
             document.getElementById("task-date").textContent = data.message.task_date;
             document.getElementById("task-due-date").textContent = data.message.task_due_date || "N/A";
-            document.getElementById("task-name").textContent = data.message.task_name;
             document.getElementById("task-description").textContent = data.message.task_description;
-            document.getElementById("task-assigned").textContent = data.message.task_assigned || "Unassigned";
-            document.getElementById("task-department").textContent = data.message.task_department || "N/A";
             document.getElementById("task-status").textContent = data.message.task_status;
+            document.getElementById("task-remarks").textContent = data.message.task_remarks;
+            document.getElementById("task-employee-description").value = data.message.task_employee_description || "";
+
+            // ✅ Set the correct radio button
+            if (data.message.task_employee_status === "Completed") {
+                document.getElementById("status-completed").checked = true;
+            } else {
+                document.getElementById("status-pending").checked = true;
+            }
         } else {
             alert("Task details not found.");
             window.location.href = "/project-list";
@@ -115,6 +107,79 @@ async function fetchTaskDetails() {
         console.error("Error fetching task details:", error);
     }
 }
+
+// ✅ Update Task Status and Description
+function updateTask() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const taskId = urlParams.get("task_id"); // ✅ Get task_id from URL
+
+    // 🔍 Debugging: Log taskId before sending request
+    console.log("Updating task with ID:", taskId);
+
+    if (!taskId) {
+        alert("Invalid Task ID.");
+        return;
+    }
+
+    let taskEmployeeDesc = document.getElementById("task-employee-description").value.trim();
+    let taskEmployeeStatus = document.querySelector('input[name="task-employee-status"]:checked').value;
+
+    if (!taskEmployeeDesc) {
+        alert("Employee Feedback cannot be empty.");
+        return;
+    }
+
+    frappe.call({
+        method: "project_manager.api.update_employee_status",
+        args: {
+            task_id: taskId,  // ✅ Send task_id
+            task_employee_description: taskEmployeeDesc,
+            task_employee_status: taskEmployeeStatus
+        },
+        callback: function(response) {
+            if (response.message) {
+                alert("Task Updated Successfully!");
+                window.location.href = "/project-dashboard";
+            } else {
+                alert("Failed to update task. Try again.");
+            }
+        }
+    });
+}
+
+async function checkUserRole() {
+    try {
+        const userResponse = await fetch("/api/method/frappe.auth.get_logged_user");
+        const userData = await userResponse.json();
+        const loggedUser = userData.message;
+
+        const roleResponse = await fetch(`/api/method/project_manager.api.get_user_details?email=${loggedUser}`);
+        const roleData = await roleResponse.json();
+        const userRole = roleData.message.role_profile_name;
+
+        console.log("User Role:", userRole);
+
+        if (userRole === "Task-Boss" || userRole === "Task-Lead") {
+            // 🔒 Make fields read-only instead of disabled
+            document.querySelectorAll("#task-form textarea, #task-form input").forEach(element => {
+                element.readOnly = true;  // ✅ Users can read but not edit
+            });
+
+            // ❌ Hide the submit button (Task-Lead and Task-Boss cannot submit)
+            document.querySelector("#task-form button").style.display = "none";
+        } else if (userRole === "Task-Employee") {
+            document.getElementById("task-form").style.pointerEvents = "auto";
+        } else {
+            alert("Unauthorized access.");
+            window.location.href = "/";
+            return;
+        }
+
+    } catch (error) {
+        console.error("Error fetching user role:", error);
+    }
+}
+
 </script>
 
 {% endblock %}
